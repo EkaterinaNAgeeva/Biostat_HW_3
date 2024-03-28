@@ -1,0 +1,35 @@
+---
+title: "HW_3"
+author: "AgeevaEN"
+date: "2024-03-28"
+output: html_document
+---
+Считываем файл
+```{r}
+install.packages('readxl')
+library (readxl)
+data <- read_excel('D:/Учеба/биостатистика/pima.xlsx')
+```
+1. Рассчитайте описательные статистики для переменных glucose, pressure, mass. 
+```{r}
+summary(data[, c("glucose", "pressure", "mass")])
+```
+2. Рассчитайте описательную статистику для переменной diabetes. Создайте на основе переменной age новую переменную age_group, которая будет отражать следующие возрастные группы: 21–35, 36–49 и 50+. Посчитайте описательную статистику для новой переменной.
+```{r}
+#описательная статистика для disbetes
+
+summary(data$diabetes) 
+
+library(dplyr)
+
+# Создание новой переменой на основе существующей
+
+data %>%
+ mutate (age_group = case_when (age < 36 ~ 'young',
+35 < age & age < 50 ~ 'middle',
+ age > 49 ~ 'old'))
+
+# Описательная статистика для новой переменной
+
+summary(data$age_group)
+```
