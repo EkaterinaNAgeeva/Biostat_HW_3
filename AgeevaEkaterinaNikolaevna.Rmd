@@ -16,20 +16,76 @@ summary(data[, c("glucose", "pressure", "mass")])
 ```
 2. Рассчитайте описательную статистику для переменной diabetes. Создайте на основе переменной age новую переменную age_group, которая будет отражать следующие возрастные группы: 21–35, 36–49 и 50+. Посчитайте описательную статистику для новой переменной.
 ```{r}
-#описательная статистика для disbetes
+#описательная статистика для diabetes
+library(tidyverse)
 
-summary(data$diabetes) 
+absolute_frequencies <- table(data$diabetes)
 
-library(dplyr)
+relative_frequencies <- prop.table(absolute_frequencies) * 100 
+
 
 # Создание новой переменой на основе существующей
 
-data %>%
- mutate (age_group = case_when (age < 36 ~ 'young',
-35 < age & age < 50 ~ 'middle',
- age > 49 ~ 'old'))
+data <- data %>%
+    mutate (age_group = as.factor(case_when (age < 36 ~ '21-35',
+    35 < age & age < 50 ~ '36-49',
+     age > 49 ~ '50+')))
 
 # Описательная статистика для новой переменной
 
-summary(data$age_group)
+absolute_age <- table(data$age_group)
+relative_age <- (absolute_age / length(data$age_group)) * 100
+```
+3. Определите 90% доверительный интервал для переменной pedigree.
+```{r}
+mean_pedigree <- mean(data$pedigree)
+sd_pedigree <- sd(data$pedigree)
+se_pedigree <- sd_pedigree/sqrt(length(data$pedigree))
+
+alpha <- 0.1
+df <- length(data$pedigree) - 1
+t <- qt(alpha/2, df, lower.tail = F)
+
+pedigree_interval <- c(mean_pedigree - t * se_pedigree,
+                      mean_pedigree + t * se_pedigree)
+
+```
+4. Постройте график плотности вероятности для переменной glucose и отметьте на нем среднее значение. Для той же переменной постройте гистограмму. Постройте два ящика с усами для значений pos и neg соответственно переменной diabetes.
+```{r}
+# График плотности вероятности для глюкозы
+
+ggplot(data = data) +
+  geom_density(aes(glucose)) +
+  geom_vline(xintercept = mean(data$glucose), color = 'green') +
+  labs(title = "График плотности вероятности для glucose")
+
+#Гистограмма для глюкозы
+
+hist(data$glucose,
+  breaks = 50,
+  main = "Распределение глюкозы",
+  xlab = "glucose")
+
+ #Ящик с усами для диабета
+
+ggplot(data = data) +
+  geom_boxplot(aes(diabetes, glucose, fill = diabetes)) +
+  labs(title = "Распределение наличия диабета")
+
+```
+6. Постройте на одном графике две диаграммы рассеяния для наличия или отсутствия диабета. По оси X представьте значения обхвата трицепса, а по оси Y — массу тела. Выполните окрашивание, заливку и группирование по переменной diabetes.
+```{r}
+
+data_clean <- subset(data, triceps != 0 & mass != 0)
+
+ggplot(data = data_clean,
+    aes(x = triceps, y = mass)) +
+    geom_point(color = "black", shape = 21, size = 4,
+    aes(fill = factor(data_clean$diabetes))) +
+    scale_fill_manual(values = c("blue", "darkblue")) +
+    facet_grid(. ~ diabetes) +
+    labs(title = "Диаграмма рассеяния диабета",
+    x = "Обхват трицепса", y = "Масса тела") +
+    theme_light()
+
 ```
